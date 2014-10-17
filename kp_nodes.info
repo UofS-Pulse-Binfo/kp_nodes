@@ -1,0 +1,6 @@
+package = KnowPulse
+name = KnowPulse Content Types
+description = Provides KnowPulse-specific content types
+version = 7.x-1.0a
+core = 7.x
+dependencies = kp_views
