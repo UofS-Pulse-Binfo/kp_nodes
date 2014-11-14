@@ -1,24 +1,7 @@
 <?php
 $node_type = $node->type;
-if($teaser) {
+if(!$teaser) {
 ?>
-
-<div class="tripal_<?php print $node_type?>-teaser tripal-teaser">
-  <div class="tripal-<?php print $node_type?>-teaser-title tripal-teaser-title">
-    <?php print l($node->title, "node/$node->nid"); ?>
-  </div>
-  <div class="tripal-<?php print $node_type?>-teaser-text tripal-teaser-text">
-    <span class="<?php print $node_type?>-teaser-image">
-      <?php print render($content['field_page_thumnail']); ?>
-    </span>
-    <?php print render($content['body']); ?> <span class="<?php print $node_type?>-teaser-more tripal-teaser-more"><?php print l('[more]', "node/$node->nid"); ?></span>
-  </div>
-</div>
-
-<?php
-}
-else {
-  $node_type = $node->type; ?>
 
   <script type="text/javascript">
     (function ($) {

@@ -1,17 +1,14 @@
 <?php
-$organism  = $variables['node']->organism;
-$organism = tripal_core_expand_chado_vars($organism,'field','organism.comment');
-
-$organism_image = $node->content['field_image_with_source'];
-$organism_image_entity = current($organism_image[0]['entity']['field_collection_item']);
-unset($node->content['field_image_with_source']);
-
-// Remove the nurteint facts if they're empty
-$nutrient_facts = current($node->content['field_nutrition'][0]['entity']['field_collection_item']);
-if (sizeof($nutrient_facts['field_nutrition_data'][0]['#rows']) == 1) {
-  unset($node->content['field_nutrition']);
-}
+/**
+ *
+ */
 ?>
+
+<style>
+.organism-main-image .field-collection-view-links {
+  display: none;
+}
+</style>
 
 <div class="tripal_organism-data-block-desc tripal-data-block-desc"></div><?php
 
@@ -99,11 +96,7 @@ $table = array(
 );
 ?>
 
-<span class="organism-main-image">
-  <a href="<?php print $organism_image_entity['field_image_link'][0]['#element']['display_url']; ?>" target=<?php print $organism_image_entity['field_image_link'][0]['#element']['attributes']['target']; ?>>
-    <?php print render($organism_image_entity['field_image']); ?>
-  </a>
-</span>
+<span class="organism-main-image"><?php print $rendered_organism_image; ?></span>
 
 <?php
   // once we have our table array structure defined, we call Drupal's theme_table()
