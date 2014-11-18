@@ -91,16 +91,20 @@ function kp_nodes_preprocess_tripal_organism_teaser(&$variables) {
   $image = '<img src="'.$image_link.'">';
   $image = render($image);
 
-  // Wrap image in link.
-  $variables['rendered_organism_image'] = l(
-    $image,
-    $image_fieldcollection->field_image_link[$lang][0]['url'],
-    array(
-      'html' => TRUE,
-      'attributes' => $image_fieldcollection->field_image_link[$lang][0]['attributes']
-    )
-  );
-
+  // Wrap image in link if available.
+  if (isset($image_fieldcollection->field_image_link[$lang][0]['url'])) {
+    $variables['rendered_organism_image'] = l(
+      $image,
+      $image_fieldcollection->field_image_link[$lang][0]['url'],
+      array(
+        'html' => TRUE,
+        'attributes' => $image_fieldcollection->field_image_link[$lang][0]['attributes']
+      )
+    );
+  }
+  else {
+    $variables['rendered_organism_image'] = $image;
+  }
 }
 
 /**
