@@ -1,6 +1,8 @@
 # KnowPulse Nodes
 Contains KnowPulse-specific Themeing of node pages. 
 
+**Not tested on generic Tripal sites; May require KnowPulse-specific configuration.**
+
 **NOTE: This is a module rather than a theme to ensure that you don't need the base theme (KP Theme & Antonelli) to get this functionality. You should ensure that the weight of this module is lighter (ie: -2) than all the Tripal modules in order to ensure the variables are built before this module attempts to manipulate them.**
 
 ## Chado Feature
