@@ -13,8 +13,14 @@ function kp_nodes_theme($existing, $type, $theme, $path) {
       'template' => 'node--generic',
       'render element' => 'node',
       'base hook' => 'node',
-      'path' => "$path/theme",
+      'path' => "$path/theme"
     ),
+    
+    'tripal_research_area_teaser' => array(
+      'template' => 'tripal-research-area-teaser',
+      'render element' => 'node',
+      'path' => "$path/theme"
+    )
   );
 
   return $items;
@@ -45,6 +51,17 @@ function kp_nodes_node_view($node, $view_mode, $langcode) {
           '#weight' => -100,
         );
         unset($node->content['body'], $node->content['field_page_thumnail']);
+      
+      } elseif($view_mode == 'teaser') {
+          $node->content['uofs_research_area_pane'] = array(
+            '#theme' => 'tripal_research_area_teaser',
+            '#node' => $node
+          ); 
+                    
+          //stop displaying same entry in the same page
+          unset($node->content['body'],
+                $node->content['field_page_thumnail'],
+                $node->content['links']);
       }
       break;
 
