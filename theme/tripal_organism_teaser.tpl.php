@@ -6,7 +6,9 @@
   <div class="col-right-copy tripal-organism-teaser-text tripal-teaser-text">
     <?php       
       print l("<h3><i>$organism->genus $organism->species</i> ($organism->common_name)</h3>", "node/$node->nid", array('html' => TRUE));
-      print "<p align=\"justify\">" . substr($organism->comment, 0, 650);
+      
+      $p = explode('</p>', $organism->comment);
+      print "<p align=\"justify\">" . str_replace('<p>', '', $p[0]);
       if (strlen($organism->comment) > 650) {
         print " ... " . l("[more]", "node/$node->nid");
       }
