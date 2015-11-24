@@ -244,7 +244,10 @@ foreach ($properties as $property) {
 // now add in a single row for all keywords
 if (count($keywords) > 0) {
   $rows[] = array(
-    'Keywords',
+    array(
+      'data' => 'Keywords',
+      'header' => TRUE
+    ),
     implode(', ', $keywords),
   );
 }
