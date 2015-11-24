@@ -1,6 +1,6 @@
 <?php
 
-dpm($node->type, 'node type');
+//dpm($node->type, 'node type');
 
 if($teaser) {
   print render($content);
@@ -76,5 +76,3 @@ else {
     </table>
   </div> <?php
 }
-
-
