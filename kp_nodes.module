@@ -90,6 +90,14 @@ function kp_nodes_node_view($node, $view_mode, $langcode) {
       // Get rid of Publications list since it's been added onto the overview.
       unset($node->content['tripal_contact_publications']);
       break;
+    
+    case 'chado_pub':
+      
+      unset(
+        $node->content['tripal_pub_properties'],
+        $node->content['tripal_pub_authors']
+      );
+      break;
   }
 }
 
