@@ -17,6 +17,7 @@ function kp_nodes_theme_registry_alter(&$theme_registry) {
     'node__chado_feature', 'tripal_feature_base',
     'tripal_organism_base', 'tripal_organism_stocks', 'tripal_organism_feature_counts', 'tripal_organism_teaser',
     'tripal_project_base', 'tripal_project_relationships',
+    'tripal_contact_base',
   );
   foreach ($templates_to_override as $template_name) {
     $theme_registry[$template_name]['theme path'] = $module_path;

@@ -84,6 +84,12 @@ function kp_nodes_node_view($node, $view_mode, $langcode) {
       unset($node->content['field_long_description']);
 
       break;
+
+    case 'chado_contact':
+
+      // Get rid of Publications list since it's been added onto the overview.
+      unset($node->content['tripal_contact_publications']);
+      break;
   }
 }
 
