@@ -32,9 +32,6 @@ function kp_nodes_theme_registry_alter(&$theme_registry) {
   // Additional info req. for the jbrowse instance node.
   $theme_registry['node__jbrowse_instance']['template'] = 'node--jbrowse-instance';
 
-
-  dpm($theme_registry['node__jbrowse_instance'], 'jbrowse registry');
-
 }
 
 /**
