@@ -20,10 +20,52 @@ function kp_nodes_theme($existing, $type, $theme, $path) {
       'template' => 'tripal-research-area-teaser',
       'render element' => 'node',
       'path' => "$path/theme"
-    )
+    ),
+
+    'node__jbrowse_instance' => array(
+      'template' => 'node--jbrowse-instance',
+      'render element' => 'node',
+      'base hook' => 'node',
+      'path' => "$path/theme"
+    ),
+    
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_libraries_info().
+ */
+function kp_nodes_libraries_info() {
+
+  $libraries['shepherd'] = array(
+    'name' => 'Shepherd Site Tour',
+    'vendor url' => 'http://github.hubspot.com/shepherd/docs/welcome/',
+    'download url' => 'https://github.com/HubSpot/Shepherd',
+    'version' => '1.2.0',
+    'files' => array(
+        'js' => array('shepherd.min.js'),
+        'css' => array(
+          'shepherd-theme-arrows.css'
+        ),
+    ),
+  );
+
+  $libraries['tether'] = array(
+    'name' => 'Tether',
+    'vendor url' => 'http://github.hubspot.com/tether/',
+    'download url' => 'http://github.hubspot.com/tether/',
+    'version' => '1.1.1',
+    'files' => array(
+        'js' => array('tether.min.js'),
+        'css' => array(
+          'tether.min.css'
+        ),
+    ),
+  );
+
+  return $libraries;
 }
 
 /**

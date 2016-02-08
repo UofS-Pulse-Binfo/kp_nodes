@@ -19,6 +19,7 @@ function kp_nodes_theme_registry_alter(&$theme_registry) {
     'tripal_project_base', 'tripal_project_relationships',
     'tripal_contact_base',
     'tripal_pub_base',
+    'node__jbrowse_instance'
   );
   foreach ($templates_to_override as $template_name) {
     $theme_registry[$template_name]['theme path'] = $module_path;
@@ -27,6 +28,12 @@ function kp_nodes_theme_registry_alter(&$theme_registry) {
 
   // Additional information needed to override a tripal node.
   $theme_registry['node__chado_feature']['template'] = 'node--chado-feature';
+  
+  // Additional info req. for the jbrowse instance node.
+  $theme_registry['node__jbrowse_instance']['template'] = 'node--jbrowse-instance';
+
+
+  dpm($theme_registry['node__jbrowse_instance'], 'jbrowse registry');
 
 }
 
