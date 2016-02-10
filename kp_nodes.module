@@ -3,9 +3,22 @@
 require_once 'theme/template.php';
 
 /**
+ * Implementation of hook_init()
+ */
+function kp_nodes_init() {
+
+  if (drupal_is_front_page()) {
+    libraries_load('tether');
+    libraries_load('shepherd');
+    drupal_add_css(drupal_get_path('theme','kptheme') . '/css/shepherd_tour.css');
+    drupal_add_js(drupal_get_path('theme','kptheme') . '/js/shepherdScrollingButtons.js');
+    drupal_add_js(drupal_get_path('module','kp_nodes') . '/theme/js/siteTour-FrontPage.js');
+  }
+}
+
+/**
  * General functions for KnowPulse Content types
  */
-
 function kp_nodes_theme($existing, $type, $theme, $path) {
 
   $items = array(
