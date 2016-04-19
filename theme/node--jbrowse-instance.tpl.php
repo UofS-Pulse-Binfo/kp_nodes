@@ -77,10 +77,31 @@
  * @see template_preprocess_node()
  * @see template_process()
  */
- 
-libraries_load('tether');
-libraries_load('shepherd');
-drupal_add_css(drupal_get_path('theme','kptheme').'/css/shepherd_tour.css');
+
+if ($teaser) { ?>
+<div class="tripal-jbrowse-teaser tripal-teaser">
+  <div class="tripal-jbrowse-teaser-title tripal-teaser-title"><h2><?php
+    print l($node->title, "node/$node->nid", array('html' => TRUE));?>
+  </h2></div>
+  <div class="tripal-jbrowse-teaser-text tripal-teaser-text">
+    <?php if (!empty($field_long_description)) {
+      print render($field_long_description);
+    }
+    else {
+      print "A JBrowse instance providing a graphical means of exploring the features of a genome.";
+    }
+    ?>
+  </div>
+</div>
+
+
+<?php
+}
+else {
+
+  libraries_load('tether');
+  libraries_load('shepherd');
+  drupal_add_css(drupal_get_path('theme','kptheme').'/css/shepherd_tour.css');
 
 ?>
 
@@ -169,3 +190,5 @@ reen oallowfullscreen msallowfullscreen>
   </div>
 
 </div>
+
+<?php } ?>

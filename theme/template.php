@@ -16,9 +16,11 @@ function kp_nodes_theme_registry_alter(&$theme_registry) {
   $templates_to_override = array(
     'node__chado_feature', 'tripal_feature_base',
     'tripal_organism_base', 'tripal_organism_stocks', 'tripal_organism_feature_counts', 'tripal_organism_teaser',
-    'tripal_project_base', 'tripal_project_relationships',
+    'tripal_stock_teaser',
+    'tripal_feature_teaser',
+    'tripal_project_base', 'tripal_project_relationships', 'tripal_project_teaser',
     'tripal_contact_base',
-    'tripal_pub_base',
+    'tripal_pub_base', 'tripal_pub_teaser',
     'node__jbrowse_instance'
   );
   foreach ($templates_to_override as $template_name) {
@@ -28,7 +30,7 @@ function kp_nodes_theme_registry_alter(&$theme_registry) {
 
   // Additional information needed to override a tripal node.
   $theme_registry['node__chado_feature']['template'] = 'node--chado-feature';
-  
+
   // Additional info req. for the jbrowse instance node.
   $theme_registry['node__jbrowse_instance']['template'] = 'node--jbrowse-instance';
 
