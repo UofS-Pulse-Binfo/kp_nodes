@@ -147,10 +147,10 @@ function kp_contact_form_submit($form, $form_state) {
     'subject' => 'Website Information Request',
   );
   if (drupal_mail('kp_contact', 'kp_contact', $to, language_default(), $params, $from, TRUE)) {
-    drupal_set_message('Thanks, we will be in contact with more information soon.');
+    drupal_set_message('Thank you for taking the time to contact us! We will get back to you as soon as possible.');
   }
   else {
-    drupal_set_message('There was an error subscribing you. Please try again later');
+    drupal_set_message('Our system encountered an error trying to contact us. Please check your email address and try again.', 'error');
   }
 
 }

@@ -2,6 +2,14 @@
  * Provides themeing specific to the contact us page.
  */
 
+h1.title {
+  display: none;
+}
+.region-content {
+  position: relative;
+  top: -10px;
+}
+
 /* First, set up the basic 2-column layout */
 .contact-wrapper {
   display: inline-flex;
