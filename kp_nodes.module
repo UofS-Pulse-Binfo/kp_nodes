@@ -17,7 +17,24 @@ function kp_nodes_init() {
 }
 
 /**
- * General functions for KnowPulse Content types
+ * Implements hook_menu().
+ */
+function kp_nodes_menu() {
+  $items = array();
+
+  $items['contact'] = array(
+    'title' => 'Contact us',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('kp_contact_form'),
+    'access arguments' => array('access content'),
+    'file' => 'includes/contact_form.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_theme().
  */
 function kp_nodes_theme($existing, $type, $theme, $path) {
 
@@ -28,7 +45,7 @@ function kp_nodes_theme($existing, $type, $theme, $path) {
       'base hook' => 'node',
       'path' => "$path/theme"
     ),
-    
+
     'tripal_research_area_teaser' => array(
       'template' => 'tripal-research-area-teaser',
       'render element' => 'node',
@@ -41,7 +58,11 @@ function kp_nodes_theme($existing, $type, $theme, $path) {
       'base hook' => 'node',
       'path' => "$path/theme"
     ),
-    
+
+    'kp_worldmap' => array(
+      'template' => 'worldmap.svg',
+      'path' => "$path/theme"
+    ),
   );
 
   return $items;
@@ -106,13 +127,13 @@ function kp_nodes_node_view($node, $view_mode, $langcode) {
           '#weight' => -100,
         );
         unset($node->content['body'], $node->content['field_page_thumnail']);
-      
+
       } elseif($view_mode == 'teaser') {
           $node->content['uofs_research_area_pane'] = array(
             '#theme' => 'tripal_research_area_teaser',
             '#node' => $node
-          ); 
-                    
+          );
+
           //stop displaying same entry in the same page
           unset($node->content['body'],
                 $node->content['field_page_thumnail'],
@@ -162,9 +183,9 @@ function kp_nodes_node_view($node, $view_mode, $langcode) {
       // Get rid of Publications list since it's been added onto the overview.
       unset($node->content['tripal_contact_publications']);
       break;
-    
+
     case 'chado_pub':
-      
+
       unset(
         $node->content['tripal_pub_properties'],
         $node->content['tripal_pub_authors']
