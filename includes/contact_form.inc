@@ -104,7 +104,7 @@ function kp_contact_form($form, $form_state) {
 
   $form['c']['i']['paragraph'] = array(
     '#type' => 'item',
-    '#markup' => 'KnowPulse is developed by the Pulse Crop Bioinformatics group at the University of Saskatchewan. If you have run into any problems with KnowPulse, we would love to hear about them as we are constantly striving to improve our portal. In the same vein, comments, suggestions for improvement and/or feature requests would be very much appretiated!'
+    '#markup' => 'KnowPulse is developed by the Pulse Crop Bioinformatics group at the University of Saskatchewan. If you have run into any problems with KnowPulse, we would love to hear about them as we are constantly striving to improve our portal. In the same vein, comments, suggestions for improvement and/or feature requests would be very much appreciated!'
       . '<br /><div class="signature">~ The KnowPulse Team</div>',
   );
 
@@ -126,6 +126,9 @@ function kp_contact_form_validate($form, $form_state) {
  * Submit the contact form (ie: send the email).
  */
 function kp_contact_form_submit($form, $form_state) {
+  global $base_url;
+  $site_name = variable_get('site_name');
+  $admin_user = user_load(1);
 
   // Set who this email is being sent from (ie: from KnowPulse)
   $from = 'admin@knowpulse.usask.ca';
@@ -140,7 +143,7 @@ function kp_contact_form_submit($form, $form_state) {
   $body[] = $form_state['values']['msg'];
 
   // Who to send the email to.
-  $to = 'lacey.sanderson@usask.ca'; // Set this email address - emails will be sent to this email address!
+  $to = $admin_user->mail;
 
   $params = array(
     'body' => $body,
