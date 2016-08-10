@@ -14,7 +14,7 @@ function kp_nodes_theme_registry_alter(&$theme_registry) {
 
   // Tell the theme registry to use:
   $templates_to_override = array(
-    'node__chado_feature', 'tripal_feature_base',
+    'node__chado_feature', 'tripal_feature_base', 'tripal_feature_alignments',
     'tripal_organism_base', 'tripal_organism_stocks', 'tripal_organism_feature_counts', 'tripal_organism_teaser',
     'tripal_stock_teaser',
     'tripal_feature_teaser',
