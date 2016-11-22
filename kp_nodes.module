@@ -63,6 +63,13 @@ function kp_nodes_theme($existing, $type, $theme, $path) {
       'template' => 'worldmap.svg',
       'path' => "$path/theme"
     ),
+
+    'kp_nodes_project_stocks' => array(
+      'template' => 'kp_nodes_project_stocks',
+      'render element' => 'node',
+      'path' => "$path/theme"
+    )
+
   );
 
   return $items;
@@ -107,6 +114,12 @@ function kp_nodes_libraries_info() {
  * Acts on all content types.
  */
 function kp_nodes_node_view($node, $view_mode, $langcode) {
+  // Update the breadcrumbs to include link back to projects page.
+  $breadcrumbs[] = l('Home', '');
+  $breadcrumbs[] = l('Projects', '/research/projects');
+
+  drupal_set_breadcrumb($breadcrumbs);
+
   switch ($node->type) {
     case 'uofs_research_area':
       if ($view_mode == 'full') {
@@ -165,6 +178,14 @@ function kp_nodes_node_view($node, $view_mode, $langcode) {
       }
       break;
     case 'chado_project':
+      // Germplasm Pane
+      $node->content['kp_nodes_project_stocks'] = array(
+        '#theme' => 'kp_nodes_project_stocks',
+        '#node' => $node,
+        '#tripal_toc_id'    => 'germplasm',
+        '#tripal_toc_title' => 'Germplasm',
+        '#weight' => 4,
+      );
 
       // Hide the date field since we will render it manually in the overview.
       unset($node->content['field_date_month_year']);

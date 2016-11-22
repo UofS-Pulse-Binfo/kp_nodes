@@ -138,3 +138,121 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
   $variables['long_description'] = field_view_field('node', $variables['node'], 'field_long_description',$display_settings);
 
 }
+
+
+/**
+ * Implements hook preprocess.
+ * Generate variables/content for theme Project List of Stocks.
+ */
+ function kp_nodes_preprocess_kp_nodes_project_stocks(&$variables) {
+   // Get the project ID number.
+   $project_id = $variables['node']['#node']->project->project_id;
+
+   // First check if table Project Stocks exists.
+   $sql = "SELECT relname FROM pg_class WHERE relname = 'project_stock'";
+   $r = db_query($sql);
+
+   if ($r->rowCount() > 0) {
+     // Table header with sort option.
+     $sort_header = array('data' => t('Name'), 'field' => 'name', 'sort' => 'ASC');
+     // Get the sort order from the url.
+     $sort  = tablesort_get_sort($sort_header);
+
+     // Table exists.
+     $sql = sprintf("SELECT
+               t1.name, uniquename,
+               INITCAP(genus) || ' ' || LOWER(species) AS species,
+               t2.name AS type,
+               'node/' || link.nid AS node_link
+             FROM
+               {stock} AS t1
+               LEFT JOIN chado_stock AS link USING(stock_id)
+               LEFT JOIN {project_stock} USING(stock_id)
+               LEFT JOIN {organism} USING(organism_id)
+               LEFT JOIN {cvterm} AS t2 ON cvterm_id = type_id
+             WHERE project_id = :project_id
+             ORDER BY t1.name %s", $sort);
+
+     $args = array(':project_id' => $project_id);
+     $g = chado_query($sql, $args);
+
+     // Total stocks found.
+     $total_stocks = $g->rowCount();
+
+     if ($total_stocks > 0) {
+       // Stocks available - construct table.
+
+       // Array to hold table properties.
+       $arr_tbl_prop = array();
+       // Array to hold stock rows.
+       $arr_stocks_rows = array();
+
+       // HEADER.
+       $arr_tbl_prop['header'] = array(
+         $sort_header,
+         array('data' => t('Accession')),
+         array('data' => t('Species')),
+         array('data' => t('Type')),
+       );
+
+       // ROWS.
+       foreach($g as $v) {
+         // Link to germ node.
+         $node_link = l($v->name, $v->node_link, array('attributes' => array('target' => '_blank')));
+         // Push rows into arr_stocks.
+         array_push($arr_stocks_rows,
+           array(
+             $node_link,
+             $v->uniquename,
+             '<em>' . $v->species . '</em>',
+             $v->type,
+           )
+         );
+       }
+
+       // PAGER SETTINGS.
+       // Number or rows per page.
+       $pager_rows_per_page = 50;
+       // Current page #.
+       $pager_current_page = pager_default_initialize($total_stocks, $pager_rows_per_page);
+       // Load set of rows per page.
+       $pager_row_set = array_chunk($arr_stocks_rows, $pager_rows_per_page, TRUE);
+
+       // STOCK ROWS.
+       $arr_tbl_prop['rows'] = $pager_row_set[ $pager_current_page ];
+
+       // CONFIG.
+       $arr_tbl_prop['sticky']     = TRUE;
+       $arr_tbl_prop['attributes'] = array('id' => 'tbl-project-stocks');
+
+       // Theme table and pager.
+       $stock_table = theme('table', $arr_tbl_prop);
+       // Append page=germplasm query string to keep the List Of Stocks Pane active when sorting.
+       // replace ? and add the pane parameter.
+       if (!isset($_GET['pane'])) {
+         // Only when $pane is not set - note: pager adds the pane string.
+         $stock_table = str_replace('?', '?pane=germplasm&', $stock_table);
+       }
+
+       // Set theme variablees.
+       $variables['table_project_stocks'] = $stock_table;
+       $variables['pager_project_stocks'] = theme('pager',
+         array(
+           'quantity' => $total_stocks,
+           'parameters' => array('pane' => 'germplasm'))
+         );
+
+       $variables['info_stock_count'] = 'There are <em>' . $total_stocks . '</em> Accessions used in this project.';
+
+       // End construct table.
+     }
+     else {
+       // No stocks - no table.
+       return 0;
+     }
+   }
+   else {
+     // No such table - No row, no table.
+     return 0;
+   }
+ }
