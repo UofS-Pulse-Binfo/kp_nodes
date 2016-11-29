@@ -2,9 +2,9 @@
   // Render the table properties.
   // When nothing is returned, pane, table, link and all are not available.
 
-  if (isset($info_stock_count)) {
+  if (isset($caption_count_stocks)) {
     // Text showing how many stocks.
-    print $info_stock_count;
+    print $caption_count_stocks;
     // Stock table.
     print $table_project_stocks;
     // Pager.

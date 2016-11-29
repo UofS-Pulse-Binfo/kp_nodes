@@ -160,7 +160,7 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
 
      // Table exists.
      $sql = sprintf("SELECT
-               t1.name, uniquename,
+               t1.name, t1.uniquename,
                INITCAP(genus) || ' ' || LOWER(species) AS species,
                t2.name AS type,
                'node/' || link.nid AS node_link
@@ -182,13 +182,13 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
      if ($total_stocks > 0) {
        // Stocks available - construct table.
 
-       // Array to hold table properties.
-       $arr_tbl_prop = array();
+       // Array to hold table headers.
+       $arr_tbl_headers = array();
        // Array to hold stock rows.
-       $arr_stocks_rows = array();
+       $arr_tbl_rows = array();
 
        // HEADER.
-       $arr_tbl_prop['header'] = array(
+       $arr_tbl_headers = array(
          $sort_header,
          array('data' => t('Accession')),
          array('data' => t('Species')),
@@ -200,7 +200,7 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
          // Link to germ node.
          $node_link = l($v->name, $v->node_link, array('attributes' => array('target' => '_blank')));
          // Push rows into arr_stocks.
-         array_push($arr_stocks_rows,
+         array_push($arr_tbl_rows,
            array(
              $node_link,
              $v->uniquename,
@@ -210,39 +210,11 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
          );
        }
 
-       // PAGER SETTINGS.
-       // Number or rows per page.
-       $pager_rows_per_page = 50;
-       // Current page #.
-       $pager_current_page = pager_default_initialize($total_stocks, $pager_rows_per_page);
-       // Load set of rows per page.
-       $pager_row_set = array_chunk($arr_stocks_rows, $pager_rows_per_page, TRUE);
-
-       // STOCK ROWS.
-       $arr_tbl_prop['rows'] = $pager_row_set[ $pager_current_page ];
-
-       // CONFIG.
-       $arr_tbl_prop['sticky']     = TRUE;
-       $arr_tbl_prop['attributes'] = array('id' => 'tbl-project-stocks');
-
-       // Theme table and pager.
-       $stock_table = theme('table', $arr_tbl_prop);
-       // Append page=germplasm query string to keep the List Of Stocks Pane active when sorting.
-       // replace ? and add the pane parameter.
-       if (!isset($_GET['pane'])) {
-         // Only when $pane is not set - note: pager adds the pane string.
-         $stock_table = str_replace('?', '?pane=germplasm&', $stock_table);
-       }
-
        // Set theme variablees.
-       $variables['table_project_stocks'] = $stock_table;
-       $variables['pager_project_stocks'] = theme('pager',
-         array(
-           'quantity' => $total_stocks,
-           'parameters' => array('pane' => 'germplasm'))
-         );
-
-       $variables['info_stock_count'] = 'There are <em>' . $total_stocks . '</em> Accessions used in this project.';
+       $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-stock-generic');
+       $variables['caption_count_stocks'] = $v[0];
+       $variables['pager_project_stocks'] = $v[1];
+       $variables['table_project_stocks'] = $v[2];
 
        // End construct table.
      }
@@ -256,3 +228,149 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
      return 0;
    }
  }
+
+
+/**
+ * Implements hook preprocess.
+ * Generate variables/content for theme Project List of Stocks (AGILE Project only).
+ */
+function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
+   // Get the project ID number.
+   $project_id = $variables['node']['#node']->project->project_id;
+
+   // First check if table Project Stocks exists.
+   $sql = "SELECT relname FROM pg_class WHERE relname = 'project_stock'";
+   $r = db_query($sql);
+
+   if ($r->rowCount() > 0) {
+     // Fetch the cvterm_id of type the origin of the organism.
+     $cvterm_id_origin = tripal_get_cvterm(array('name' => 'country_of_origin'));
+
+     // Table header with sort option.
+     $sort_header = array('data' => t('Name'), 'field' => 'name', 'sort' => 'ASC');
+     // Get the sort order from the url.
+     $sort  = tablesort_get_sort($sort_header);
+
+     // Table exists.
+     $sql = sprintf("SELECT
+               t1.name, t1.uniquename,
+               INITCAP(genus) || ' ' || LOWER(species) AS species,
+               t2.name AS type,
+               'node/' || link.nid AS node_link,
+               STRING_AGG(CASE WHEN t3.type_id = %d THEN t3.value END, '') AS location
+             FROM
+               {stock} AS t1
+               LEFT JOIN chado_stock AS link USING(stock_id)
+               LEFT JOIN {project_stock} USING(stock_id)
+               LEFT JOIN {organism} USING(organism_id)
+               LEFT JOIN {cvterm} AS t2 ON t2.cvterm_id = t1.type_id
+               LEFT JOIN {stockprop} AS t3 USING(stock_id)
+             WHERE
+               project_id = :project_id
+             GROUP BY t1.name, t1.uniquename, genus, species, t2.name, link.nid
+             ORDER BY t1.name %s", $cvterm_id_origin->cvterm_id, $sort);
+
+     $args = array(':project_id' => $project_id);
+     $g = chado_query($sql, $args);
+
+     // Total stocks found.
+     $total_stocks = $g->rowCount();
+
+     if ($total_stocks > 0) {
+       // Stocks available - construct table.
+
+       // Array to hold table headers.
+       $arr_tbl_headers = array();
+       // Array to hold stock rows.
+       $arr_tbl_rows = array();
+
+       // HEADER.
+       $arr_tbl_headers = array(
+         $sort_header,
+         array('data' => t('Accession')),
+         array('data' => t('Species')),
+         array('data' => t('Type')),
+         array('data' => t('Origin')),
+       );
+
+       // ROWS.
+       foreach($g as $v) {
+         // Link to germ node.
+         $node_link = l($v->name, $v->node_link, array('attributes' => array('target' => '_blank')));
+         // Push rows into arr_stocks.
+         array_push($arr_tbl_rows,
+           array(
+             $node_link,
+             $v->uniquename,
+             '<em>' . $v->species . '</em>',
+             $v->type,
+             $v->location
+           )
+         );
+       }
+
+       // Set theme variablees.
+       $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-stock-generic');
+       $variables['caption_count_stocks'] = $v[0];
+       $variables['pager_project_stocks'] = $v[1];
+       $variables['table_project_stocks'] = $v[2];
+
+       // End construct table.
+     }
+     else {
+       // No stocks - no table.
+       return 0;
+     }
+   }
+   else {
+     // No such table - No row, no table.
+     return 0;
+   }
+}
+
+
+/**
+ * Helper function: Construct table with summary and pager.
+ */
+function kp_nodes_construct_table($arr_rows, $arr_headers, $table_attr_id) {
+  // TABLE SUMMARY.
+  // Table captions showing number of accessions.
+  $total_stocks = count($arr_rows);
+  $stock_caption = 'There are <em>' . $total_stocks . '</em> Accessions used in this project.';
+
+  // TABLE PAGER.
+  // Number or rows per page.
+  $pager_rows_per_page = 50;
+  // Current page #.
+  $pager_current_page = pager_default_initialize($total_stocks, $pager_rows_per_page);
+  // Load set of rows per page.
+  $pager_row_set = array_chunk($arr_rows, $pager_rows_per_page, TRUE);
+
+  $stock_pager = theme('pager', array(
+    'quantity'   => $total_stocks,
+    'parameters' => array('pane' => 'germplasm'))
+  );
+
+  // TABLE STOCKS.
+  // Array to hold table properties.
+  $arr_tbl_prop = array();
+  // Headers.
+  $arr_tbl_prop['header'] = $arr_headers;
+  // Rows.
+  $arr_tbl_prop['rows'] = $pager_row_set[ $pager_current_page ];
+  // Config.
+  $arr_tbl_prop['sticky']     = TRUE;
+  $arr_tbl_prop['attributes'] = array('id' => $table_attr_id);
+
+  $stock_table = theme('table', $arr_tbl_prop);
+  // Append page=germplasm query string to keep the List Of Stocks Pane active when sorting.
+  // replace ? and add the pane parameter.
+  if (!isset($_GET['pane'])) {
+    // Only when $pane is not set - note: pager adds the pane string.
+    $stock_table = str_replace('?', '?pane=germplasm&', $stock_table);
+  }
+
+
+  // RETURN TABLE SUMMARY, TABLE PAGER AND TABLE STOCKS.
+  return array($stock_caption, $stock_pager, $stock_table);
+}
