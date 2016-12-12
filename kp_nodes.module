@@ -21,7 +21,7 @@ function kp_nodes_init() {
  */
 function kp_nodes_menu() {
   $items = array();
-
+/**
   $items['contact'] = array(
     'title' => 'Contact us',
     'page callback' => 'drupal_get_form',
@@ -29,7 +29,7 @@ function kp_nodes_menu() {
     'access arguments' => array('access content'),
     'file' => 'includes/contact_form.inc',
   );
-
+*/
   return $items;
 }
 
