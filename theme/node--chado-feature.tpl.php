@@ -9,7 +9,7 @@ else {
   // Determine the type of feature
   $feature_type_class = 'generic';
   $feature_type = $node->feature->type_id->name;
-  if ($node->feature->type_id->name == 'marker') {
+  if (in_array($node->feature->type_id->name, array('marker', 'genetic_marker'))) {
     $feature_type = 'marker';
     $feature_type_class = 'marker';
   }

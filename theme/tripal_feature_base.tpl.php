@@ -7,7 +7,7 @@ $feature = chado_expand_var($feature, 'table', 'featureprop',array('return_array
 // Get the correct type for markers (ie: featureprop with "Marker Type" type)
 $type = $feature->type_id->name;
 $is_marker = FALSE;
-if ($feature->type_id->name == 'marker') {
+if (in_array($feature->type_id->name, array('marker', 'genetic_marker'))) {
   $is_marker = TRUE;
 
   // Get the marker type
@@ -113,7 +113,7 @@ $rows[] = array(
     'data' => 'Type',
     'header' => TRUE
   ),
-  ucfirst($type)
+  ucwords(str_replace('_',' ',$type))
 );
 // Marker Type row
 if ($is_marker) {
