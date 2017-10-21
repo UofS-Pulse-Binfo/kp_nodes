@@ -211,10 +211,10 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
        }
 
        // Set theme variablees.
-       $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-stock-generic');
-       $variables['caption_count_stocks'] = $v[0];
-       $variables['pager_project_stocks'] = $v[1];
-       $variables['table_project_stocks'] = $v[2];
+       $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-stock-generic', $project_id);
+       $variables['tbl_caption'] = $v[0];
+       $variables['tbl_pager'] = $v[1];
+       $variables['tbl_summary_table'] = $v[2];
 
        // End construct table.
      }
@@ -235,108 +235,85 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
  * Generate variables/content for theme Project List of Stocks (AGILE Project only).
  */
 function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
-   // Get the project ID number.
-   $project_id = $variables['node']['#node']->project->project_id;
+  // This array lists all sub project of project AGILE:
+  $arr_subprojects = array(
+    'Deployment of Tepary Bean Genetics to Improve Stress Tolerance in Common Bean',
+    'Using Crop Wild Relatives for Future Lentil Breeding: Evaluation of Drought and Disease Resistance of Interspecific Hybrid Lines',
+    'AGILE: Application of Genomic Innovation in the Lentil Economy',
 
-   // First check if table Project Stocks exists.
-   $sql = "SELECT relname FROM pg_class WHERE relname = 'project_stock'";
-   $r = db_query($sql);
+    'Field Experiment to Assess the Performance of 15 Rhizobium Strains',
+    'Flowering Time Investigation in Lentil Collection',
+    'Greenhouse Experiment to Assess the Response to R. leguminosarum of 36 Lentil Accessions',
+    'Lentil Diversity Panel Biomass',
+    'LR-11 Flowering Time',
+    'LR-68',
+    'Tracing domestication traits (shattering and plant growth habit) in an interspecific lentil population: LR-70',
+    'Tracing domestication traits (shattering) in an interspecific lentil population: LR-86',
+    'Field Experiment to Assess the Performance of 15 Rhizobium Strains',
+    'LR-86 Light Quality Field Trial',
+  );
 
-   if ($r->rowCount() > 0) {
-     // Fetch the cvterm_id of type the origin of the organism.
-     $cvterm_id_origin = tripal_get_cvterm(array('name' => 'country_of_origin'));
+  // Alter uofs_projects view and remove the pager option.
+  // This will allow us to examine all projects available to identify which
+  // belongs to sub-projects of AGILE.
+  $prj_view = views_get_view('uofs_projects');
+  $prj_view->init_display();
+  $pager = $prj_view->display_handler->get_option('pager');
+  $pager['type'] = 'none';
+  $prj_view->display_handler->set_option('pager', $pager);
 
-     // Table header with sort option.
-     $sort_header = array('data' => t('Name'), 'field' => 'name', 'sort' => 'ASC');
-     // Get the sort order from the url.
-     $sort  = tablesort_get_sort($sort_header);
+  $prj_view->pre_execute();
+  $prj_view->display_handler->preview();
+  $prj_view->post_execute();
 
-     // Table exists.
-     $sql = sprintf("SELECT
-               t1.name, t1.uniquename,
-               INITCAP(genus) || ' ' || LOWER(species) AS species,
-               t2.name AS type,
-               'node/' || link.nid AS node_link,
-               STRING_AGG(CASE WHEN t3.type_id = %d THEN t3.value END, '') AS location
-             FROM
-               {stock} AS t1
-               LEFT JOIN chado_stock AS link USING(stock_id)
-               LEFT JOIN {project_stock} USING(stock_id)
-               LEFT JOIN {organism} USING(organism_id)
-               LEFT JOIN {cvterm} AS t2 ON t2.cvterm_id = t1.type_id
-               LEFT JOIN {stockprop} AS t3 USING(stock_id)
-             WHERE
-               project_id = :project_id
-             GROUP BY t1.name, t1.uniquename, genus, species, t2.name, link.nid
-             ORDER BY t1.name %s", $cvterm_id_origin->cvterm_id, $sort);
+  if ($prj_view->result) {
+    // Array to hold table headers.
+    $arr_tbl_headers = array();
+    // Array to hold stock rows.
+    $arr_tbl_rows = array();
 
-     $args = array(':project_id' => $project_id);
-     $g = chado_query($sql, $args);
+    // HEADER.
+    $arr_tbl_headers = array(
+      array('data' => t('Experiment')),
+      array('data' => t('Year')),
+    );
 
-     // Total stocks found.
-     $total_stocks = $g->rowCount();
+    // ROWS.
+    foreach($prj_view->result as $p) {
+      if (in_array($p->project_name, $arr_subprojects)) {
+        $project_name_link = '<h3>' . l($p->project_name, url('node/' . $p->node_nid, array('absolute' => TRUE))) . '</h3>';
 
-     if ($total_stocks > 0) {
-       // Stocks available - construct table.
+        array_push($arr_tbl_rows,
+          array(
+            $project_name_link .
+            strip_tags($p->projectprop_project_value),
+            strip_tags($p->field_field_date_month_year[0]['rendered']['#markup']),
+          )
+        );
+      }
+    }
 
-       // Array to hold table headers.
-       $arr_tbl_headers = array();
-       // Array to hold stock rows.
-       $arr_tbl_rows = array();
-
-       // HEADER.
-       $arr_tbl_headers = array(
-         $sort_header,
-         array('data' => t('Accession')),
-         array('data' => t('Species')),
-         array('data' => t('Type')),
-         array('data' => t('Origin')),
-       );
-
-       // ROWS.
-       foreach($g as $v) {
-         // Link to germ node.
-         $node_link = l($v->name, $v->node_link, array('attributes' => array('target' => '_blank')));
-         // Push rows into arr_stocks.
-         array_push($arr_tbl_rows,
-           array(
-             $node_link,
-             $v->uniquename,
-             '<em>' . $v->species . '</em>',
-             $v->type,
-             $v->location
-           )
-         );
-       }
-
-       // Set theme variablees.
-       $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-stock-generic');
-       $variables['caption_count_stocks'] = $v[0];
-       $variables['pager_project_stocks'] = $v[1];
-       $variables['table_project_stocks'] = $v[2];
-
-       // End construct table.
-     }
-     else {
-       // No stocks - no table.
-       return 0;
-     }
-   }
-   else {
-     // No such table - No row, no table.
-     return 0;
-   }
+    $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-associated-project');
+    $variables['tbl_caption'] = $v[0];
+    $variables['tbl_pager'] = $v[1];
+    $variables['tbl_summary_table'] = $v[2];
+  }
+  else {
+    return 0;
+  }
 }
 
 
 /**
  * Helper function: Construct table with summary and pager.
  */
-function kp_nodes_construct_table($arr_rows, $arr_headers, $table_attr_id) {
+function kp_nodes_construct_table($arr_rows, $arr_headers, $table_attr_id, $project_id = null) {
   // TABLE SUMMARY.
   // Table captions showing number of accessions.
   $total_stocks = count($arr_rows);
-  $stock_caption = 'There are <em>' . $total_stocks . '</em> Accessions used in this project.';
+  $stock_caption = ($table_attr_id == 'tbl-project-stock-generic')
+    ? '<em>' . $total_stocks . '</em> Accessions.' . '<span style="float: right"><a href="project_germplasm/' . base64_encode('kp_nodes_project:' . $project_id) . '" target="_blank">Download List</a></span>'
+    : '<em>' . $total_stocks . '</em> Associated Projects.';
 
   // TABLE PAGER.
   // Number or rows per page.
@@ -369,7 +346,6 @@ function kp_nodes_construct_table($arr_rows, $arr_headers, $table_attr_id) {
     // Only when $pane is not set - note: pager adds the pane string.
     $stock_table = str_replace('?', '?pane=germplasm&', $stock_table);
   }
-
 
   // RETURN TABLE SUMMARY, TABLE PAGER AND TABLE STOCKS.
   return array($stock_caption, $stock_pager, $stock_table);
