@@ -171,7 +171,7 @@ function kp_nodes_theme($existing, $type, $theme, $path) {
       'path' => "$path/theme"
     ),
 
-    'kp_nodes_project_stocks_AGILE' => array(
+    'kp_nodes_project_subprojects_AGILE' => array(
       'template' => 'kp_nodes_project_stocks',
       'render element' => 'node',
       'path' => "$path/theme"
@@ -287,7 +287,7 @@ function kp_nodes_node_view($node, $view_mode, $langcode) {
     case 'chado_project':
       // Determine if project is AGILE.
       if ($node->title == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
-        $use_theme = 'kp_nodes_project_stocks_AGILE';
+        $use_theme = 'kp_nodes_project_subprojects_AGILE';
 
         $node->content[$use_theme] = array(
           '#theme' => $use_theme,

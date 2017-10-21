@@ -234,12 +234,10 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
  * Implements hook preprocess.
  * Generate variables/content for theme Project List of Stocks (AGILE Project only).
  */
-function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
+function kp_nodes_preprocess_kp_nodes_project_subprojects_AGILE(&$variables) {
   // This array lists all sub project of project AGILE:
   $arr_subprojects = array(
-    'Deployment of Tepary Bean Genetics to Improve Stress Tolerance in Common Bean',
-    'Using Crop Wild Relatives for Future Lentil Breeding: Evaluation of Drought and Disease Resistance of Interspecific Hybrid Lines',
-    'AGILE: Application of Genomic Innovation in the Lentil Economy',
+    'Effects of Early Harvest on Hard Seededness in Dry Bean',
 
     'Field Experiment to Assess the Performance of 15 Rhizobium Strains',
     'Flowering Time Investigation in Lentil Collection',
@@ -293,14 +291,20 @@ function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
       }
     }
 
-    $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-associated-project');
-    $variables['tbl_caption'] = $v[0];
-    $variables['tbl_pager'] = $v[1];
-    $variables['tbl_summary_table'] = $v[2];
+    if ($arr_tbl_rows) {
+      $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-associated-project');
+      $variables['tbl_caption'] = $v[0];
+      $variables['tbl_pager'] = $v[1];
+      $variables['tbl_summary_table'] = $v[2];
+    }
+    else {
+      return 0;
+    }
   }
   else {
     return 0;
   }
+
 }
 
 
