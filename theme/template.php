@@ -257,7 +257,7 @@ function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
                INITCAP(genus) || ' ' || LOWER(species) AS species,
                t2.name AS type,
                'node/' || link.nid AS node_link,
-               STRING_AGG(CASE WHEN t3.type_id = %d THEN t3.value END, '') AS location
+               STRING_AGG(CASE WHEN t3.type_id = %d THEN t3.value END, '') AS origin
              FROM
                {stock} AS t1
                LEFT JOIN chado_stock AS link USING(stock_id)
@@ -287,10 +287,9 @@ function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
        // HEADER.
        $arr_tbl_headers = array(
          $sort_header,
-         array('data' => t('Accession')),
+         array('data' => t('Origin')),
          array('data' => t('Species')),
          array('data' => t('Type')),
-         array('data' => t('Origin')),
        );
 
        // ROWS.
@@ -301,16 +300,15 @@ function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
          array_push($arr_tbl_rows,
            array(
              $node_link,
-             $v->uniquename,
+             $v->origin,
              '<em>' . $v->species . '</em>',
              $v->type,
-             $v->location
            )
          );
        }
 
        // Set theme variablees.
-       $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-stock-generic');
+       $v = kp_nodes_construct_table($arr_tbl_rows, $arr_tbl_headers, 'tbl-project-stock-generic', $project_id);
        $variables['caption_count_stocks'] = $v[0];
        $variables['pager_project_stocks'] = $v[1];
        $variables['table_project_stocks'] = $v[2];
@@ -332,11 +330,12 @@ function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
 /**
  * Helper function: Construct table with summary and pager.
  */
-function kp_nodes_construct_table($arr_rows, $arr_headers, $table_attr_id) {
+function kp_nodes_construct_table($arr_rows, $arr_headers, $table_attr_id, $project_id = null) {
   // TABLE SUMMARY.
   // Table captions showing number of accessions.
   $total_stocks = count($arr_rows);
-  $stock_caption = 'There are <em>' . $total_stocks . '</em> Accessions used in this project.';
+  $stock_caption = 'There are <em>' . $total_stocks . '</em> Accessions used in this project.' .
+  '<span style="float: right"><a href="project_germplasm/' . base64_encode('kp_nodes_project:' . $project_id) . '" target="_blank">Download List</a></span>';
 
   // TABLE PAGER.
   // Number or rows per page.
