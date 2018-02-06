@@ -504,3 +504,116 @@ function kp_project_germplasm_list($project = null) {
     }
   }
 }
+
+/**
+ * Implements hook_alter().
+ * Match stock name to stock with AGL prefix in rawphenotypes module.
+ * Note: only when saving data in Stage 3.
+ *
+ * @param $data
+ *   An array containing the stock name and project name.
+ *
+ * @return
+ *   A string, stock name with AGL as required.
+ *
+ * NOTE: This applies to check stock names in stage 3: save spreadsheet.
+ */
+function kp_nodes_rawpheno_AGILE_stock_name_alter(&$stock_name, &$project_name) {
+  if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
+
+    $AGILE_stock_token = 'AGL';
+
+    // Only applies when project is AGILE.
+    if (strpos($stock_name, $AGILE_stock_token) === FALSE) {
+      // Stock name does not contain AGL.
+      // Alter stockname to contain AGL.
+
+      // Space required!
+      $stock_name .= ' AGL';
+    }
+  }
+}
+
+/**
+ * Implements hook_alter().
+ * Add support email to rawphenotypes block.
+ *
+ * @param $support_email
+ *   A string, email address.
+ *
+ * @return
+ *   A string, email address.
+ */
+function kp_nodes_rawpheno_support_email_alter(&$support_email) {
+  $support_email = 'reynold.tan@usask.ca';
+}
+
+
+/**
+ * Implements hook_alter().
+ * Ignore columns in a spreadsheet file.
+ *
+ * @param $columns
+ *   An array, as set of column headers from a spreadsheet file.
+ *
+ * @return
+ *   An array, the same column headers in the parameter but with the
+ *   specified column(s) removed.
+ */
+
+// When searching for new columns.
+// in rawpheno.upload.form.inc : rawpheno_upload_form_stage_review().
+function kp_nodes_rawpheno_ignorecols_newcolumn_alter(&$header, &$project_name) {
+  if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
+    $index = kp_nodes_rawpheno_ignorecols_match($header);
+
+    if (count($index) > 0) {
+      foreach($index as $i) {
+        unset($header[$i]);
+      }
+    }
+  }
+}
+
+// When saving and validating data.
+// in rawpheno.upload.form.inc : rawpheno_validate_excel_file().
+//                               rawpheno_load_spreadsheet().
+function kp_nodes_rawpheno_ignorecols_valsave_alter(&$skip, &$project_name) {
+  if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
+    $t = kp_nodes_rawpheno_ignorecols();
+    $index = array_map('rawpheno_function_delformat', $t);
+
+    if (count($index) > 0) {
+      $skip = $index;
+    }
+  }
+}
+
+// Check existence of column(s) in columns array.
+function kp_nodes_rawpheno_ignorecols_match($header) {
+  // Ignore columns: type in lowercase.
+  $t = kp_nodes_rawpheno_ignorecols();
+  $ignore_cols = array_map('rawpheno_function_delformat', $t);
+
+  // Index of match found.
+  $cols_i = array();
+
+  // Find columns.
+  foreach($header as $i => $col) {
+    $col = rawpheno_function_delformat($col);
+    $c = (is_array($col)) ? $col['no format'] : strtolower($col);
+
+    if (in_array($c, $ignore_cols)) {
+      $cols_i[] = $i;
+    }
+  }
+
+  return $cols_i;
+}
+
+// Define a set columns to ignore.
+function kp_nodes_rawpheno_ignorecols() {
+  // As it appears in the spreadsheet file.
+  return array('Origin');
+}
+
