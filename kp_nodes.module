@@ -534,6 +534,7 @@ function kp_nodes_rawpheno_AGILE_stock_name_alter(&$stock_name, &$project_name) 
   }
 }
 
+
 /**
  * Implements hook_alter().
  * Add support email to rawphenotypes block.
@@ -543,9 +544,13 @@ function kp_nodes_rawpheno_AGILE_stock_name_alter(&$stock_name, &$project_name) 
  *
  * @return
  *   A string, email address.
+ *
+ * NOTE: to set this value, run/execute this line in Drupal /devel/php
+ *       variable_set('kp_rawpheno_support_email', 'your-email@email.com');
  */
 function kp_nodes_rawpheno_support_email_alter(&$support_email) {
-  $support_email = 'reynold.tan@usask.ca';
+  $email = variable_get('kp_rawpheno_support_email');
+  $support_email = (empty($email)) ? '' : $email;
 }
 
 
