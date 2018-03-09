@@ -21,6 +21,7 @@ function kp_nodes_init() {
  */
 function kp_nodes_menu() {
   $items = array();
+
 /**
   $items['contact'] = array(
     'title' => 'Contact us',
@@ -30,6 +31,17 @@ function kp_nodes_menu() {
     'file' => 'includes/contact_form.inc',
   );
 */
+
+  // Export germplasm list to csv file for download
+  // in Projects node.
+  $items['project/project_germplasm/%'] = array(
+    'title' => 'Germplasm List',
+    'page callback' => 'kp_project_germplasm_list',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 }
 
@@ -384,4 +396,113 @@ function kp_nodes_node_view_alter(&$build) {
     }
   }
   $build['kp_toc']['#markup'] = "<div id=\"$node->type-tripal-toc-block\" class=\"tripal-toc-block\">$toc_html</div>";
+}
+
+/**
+ * Function callback: create a list of germplasm and export to csv file for download.
+ *
+ * @param $project:
+ *    A sting encoded using base64_encode() that comprises the keyword kp_nodes_project: followed by
+ *    a project id number.
+ */
+function kp_project_germplasm_list($project = null) {
+  // FOR SECURITY REASON SINCE THIS IS PUBLICLY ACCESSIBLE, WE DEFAULT THE PROJECT TO AGILE,
+  // TO PREVENT USER FROM MODIFYING LINK AND DOWNLOAD OTHER GERMPLASM LIST OF OTHER PROJECT.
+
+  // THIS DOWNLOAD LIST FUNCTIONALITY IS EXCLUSIVE TO AGILE PROJECT ONLY AS REQUESTED.
+  // SHOULD THIS BE USED TO APPLY TO THE REST OF PROJECTS, DISCARD THE FOLLOWING LINE.
+  // USE base64_encode('kp_modes_project:project id number') as the href value to generate
+  // download link for other projects.
+
+  // THIS LINE WILL REFERENCE AGILE PROJECT.
+  $project = base64_encode('kp_nodes_project:63');
+
+  if (empty($project)) {
+    // See if the link contained a query string, if not stop processing.
+    die('Project not found.');
+  }
+  else {
+    // Decode the query string and extract the project_id.
+    $p = base64_decode($project);
+    $project_id = trim(str_replace('kp_nodes_project:', '', $p));
+
+    // Test if project id is valid, that is if it is less or 0, not a numeric value or
+    // the length is 4 or more charactres long.
+    if ($project_id <= 0 || !is_numeric($project_id) || strlen($project_id) >= 4) {
+      die('Project not found.');
+    }
+    else {
+      $project_id = (int)$project_id;
+
+      // Test if project_stock exists.
+      $sql = "SELECT relname FROM pg_class WHERE relname = 'project_stock'";
+      $exists = db_query($sql)
+        ->rowCount();
+
+      // Project Id matches a project.
+      $project = chado_query("SELECT name FROM {project} WHERE project_id = :project_id LIMIT 1", array(
+        ':project_id' => $project_id
+      ));
+
+      // Ensure that project stock exists and that the project_id number matches a project
+      // in chado.projects table.
+      if ($exists && $project->rowCount() == 1) {
+        // Fetch the cvterm_id of type the origin of the organism.
+        $cvterm_id_origin = tripal_get_cvterm(array('name' => 'country_of_origin'));
+
+        $sql = "SELECT
+          t1.name,
+          t1.uniquename,
+          INITCAP(genus) || ' ' || LOWER(species) AS species,
+          t2.name AS type,
+          STRING_AGG(CASE WHEN t3.type_id = :origin THEN t3.value END, '') AS origin
+        FROM
+          {stock} AS t1
+          LEFT JOIN {project_stock} USING(stock_id)
+          LEFT JOIN {organism} USING(organism_id)
+          LEFT JOIN {cvterm} AS t2 ON t2.cvterm_id = t1.type_id
+          LEFT JOIN {stockprop} AS t3 USING(stock_id)
+        WHERE
+          project_id = :project_id
+        GROUP BY t1.name, t1.uniquename, genus, species, t2.name
+        ORDER BY t1.name ASC";
+
+        $args = array(
+          ':origin' => $cvterm_id_origin->cvterm_id,
+          ':project_id' => $project_id
+        );
+
+        $stocks = chado_query($sql, $args);
+
+        // See if in project_stocks table, a project has been assigned a set of stocks.
+        if ($stocks->rowCount() > 0) {
+          // Prepare csv.
+          // PHP write to output stream (like echo).
+          $csv = fopen('php://output', 'w');
+
+          $csv_filename =  'AGILE_germplasm_list_' . date('Ymd') . '.csv';
+          drupal_add_http_header('Content-Type', 'text/csv; utf-8');
+          drupal_add_http_header('Content-Disposition', 'attachment; filename = ' . $csv_filename);
+
+          // Warning:
+          fwrite($csv, "#WARNING: Some germplasm names may have converted into dates in Microsoft Excel.\n");
+
+          // Headers.
+          fputcsv($csv, array(t('NAME'), t('ORIGIN'), t('SPECIES'), t('TYPE')));
+
+          foreach($stocks as $s) {
+            fputcsv($csv, array($s->name, $s->origin, $s->species, $s->type));
+          }
+
+          fclose($csv);
+        }
+        else {
+          die('Project has no stocks assigned...');
+        }
+      }
+      else {
+        die('Project not found.');
+      }
+    }
+  }
 }
