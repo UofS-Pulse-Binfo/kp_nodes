@@ -43,7 +43,7 @@ function kp_nodes_theme_registry_alter(&$theme_registry) {
 function kp_nodes_preprocess_tripal_organism_base(&$variables) {
 
   $variables['organism'] = $variables['node']->organism;
-  $variables['organism'] = tripal_core_expand_chado_vars($variables['organism'],'field','organism.comment');
+  $variables['organism'] = chado_expand_var($variables['organism'],'field','organism.comment');
 
   // Render the image with link to attribution.
   //-------------------------------------------
