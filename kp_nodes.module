@@ -546,11 +546,23 @@ function kp_nodes_rawpheno_AGILE_stock_name_alter(&$stock_name, &$project_name) 
  *   A string, email address.
  *
  * NOTE: to set this value, run/execute this line in Drupal /devel/php
- *       variable_set('kp_rawpheno_support_email', 'your-email@email.com');
+ *       variable_set('kp_rawpheno_support_email', 'your-email@email.com')
+ *       otherwise, the module will load email from either the Drupal user 0 
+ *       or the Drupal site wide mail.
  */
 function kp_nodes_rawpheno_support_email_alter(&$support_email) {
-  $email = variable_get('kp_rawpheno_support_email');
-  $support_email = (empty($email)) ? '' : $email;
+  $support_email = variable_get('kp_rawpheno_support_email');
+  
+  if (empty($support_email)) {
+    // Get Drupal admin 0 email.
+    $support_email = chado_query("SELECT mail FROM users WHERE uid = 0")
+      ->fetchField();
+    
+    if (empty($support_email)) {
+      // Get the Drupal setup site email address.
+      $support_email = variable_get('site_mail');
+    }
+  }
 }
 
 
