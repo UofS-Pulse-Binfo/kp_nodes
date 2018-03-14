@@ -555,7 +555,7 @@ function kp_nodes_rawpheno_support_email_alter(&$support_email) {
   
   if (empty($support_email)) {
     // Get Drupal admin 0 email.
-    $support_email = chado_query("SELECT mail FROM users WHERE uid = 0")
+    $support_email = chado_query("SELECT mail FROM users WHERE uid = 1")
       ->fetchField();
     
     if (empty($support_email)) {
