@@ -538,22 +538,25 @@ function kp_nodes_rawpheno_AGILE_stock_name_alter(&$stock_name, &$project_name) 
 /**
  * Implements hook_alter().
  * Add support email to rawphenotypes block, upload page and other pages.
- * This hook will allow admin user to set support email for rawphenotypes module by
- * modifying 2 available variables. See below for how to use both options.
  *
- * @param $user_name
- *   A string, user name from Drupal.users table.
+ * @param $support_email
+ *   A string, referenced variable alterable by this hook.
+ *
+ * @see
+ *   modules/rawpheno/include/rawpheno.funciton.measurements.inc.
  */
-function kp_nodes_rawpheno_support_email_alter(&$user_name) {
-  // 1. To use persistent variable, change your@emailaddress.com to 
-  //    support email and execute/run the following code in Drupal /devel/php terminal.
-  
-  //    variable_set('kp_rawpheno_support_email', 'your@emailaddress.com'); 
-  
-  // 2. To provide Drupal user name, replace the user name (string after the = symbol)
-  //    and save this file.
-  
-  $user_name = 'UofS Reynold Tan';
+function kp_nodes_rawpheno_support_email_alter(&$support_email) {
+  // Referenced parameters in function: rawpheno_function_get_support_email() in @see.
+
+  // Use $support_email = 'command#value' to provide support email.
+  // username, emailadd, useridno are the supported commands.
+  // Examples:
+
+  // $support_email = 'username#Drupal user name';
+  // $support_email = 'emailadd#your@emailaddress.com';
+  // $support_email = 'userdino#Integer, Id number';
+
+  $support_email = 'username#UofS Reynold Tan';
 }
 
 
@@ -606,9 +609,9 @@ function kp_nodes_rawpheno_ignorecols_newcolumn_alter(&$header, &$project_name) 
  *   kp_nodes_rawpheno_ignorecols().
  */
 function kp_nodes_rawpheno_ignorecols_valsave_alter(&$skip, &$project_name) {
-  // Referenced parameters in functions: 
+  // Referenced parameters in functions:
   // rawpheno_validate_excel_file() and rawpheno_load_spreadsheet() in @see.
-  
+
   if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
     $t = kp_nodes_rawpheno_ignorecols();
     $index = array_map('rawpheno_function_delformat', $t);
@@ -631,7 +634,7 @@ function kp_nodes_rawpheno_ignorecols_valsave_alter(&$skip, &$project_name) {
  *
  * @see
  *   kp_nodes_rawpheno_ignorecols_valsave_alter().
- *   kp_nodes_rawpheno_ignorecols(). 
+ *   kp_nodes_rawpheno_ignorecols().
  */
 function kp_nodes_rawpheno_ignorecols_match($header) {
   // Ignore columns: type in lowercase.
