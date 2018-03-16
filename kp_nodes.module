@@ -537,32 +537,23 @@ function kp_nodes_rawpheno_AGILE_stock_name_alter(&$stock_name, &$project_name) 
 
 /**
  * Implements hook_alter().
- * Add support email to rawphenotypes block.
+ * Add support email to rawphenotypes block, upload page and other pages.
+ * This hook will allow admin user to set support email for rawphenotypes module by
+ * modifying 2 available variables. See below for how to use both options.
  *
- * @param $support_email
- *   A string, email address.
- *
- * @return
- *   A string, email address.
- *
- * NOTE: to set this value, run/execute this line in Drupal /devel/php
- *       variable_set('kp_rawpheno_support_email', 'your-email@email.com')
- *       otherwise, the module will load email from either the Drupal user 0 
- *       or the Drupal site wide mail.
+ * @param $user_name
+ *   A string, user name from Drupal.users table.
  */
-function kp_nodes_rawpheno_support_email_alter(&$support_email) {
-  $support_email = variable_get('kp_rawpheno_support_email');
+function kp_nodes_rawpheno_support_email_alter(&$user_name) {
+  // 1. To use persistent variable, change your@emailaddress.com to 
+  //    support email and execute/run the following code in Drupal /devel/php terminal.
   
-  if (empty($support_email)) {
-    // Get Drupal admin 0 email.
-    $support_email = chado_query("SELECT mail FROM users WHERE uid = 1")
-      ->fetchField();
-    
-    if (empty($support_email)) {
-      // Get the Drupal setup site email address.
-      $support_email = variable_get('site_mail');
-    }
-  }
+  //    variable_set('kp_rawpheno_support_email', 'your@emailaddress.com'); 
+  
+  // 2. To provide Drupal user name, replace the user name (string after the = symbol)
+  //    and save this file.
+  
+  $user_name = 'UofS Reynold Tan';
 }
 
 
@@ -570,17 +561,21 @@ function kp_nodes_rawpheno_support_email_alter(&$support_email) {
  * Implements hook_alter().
  * Ignore columns in a spreadsheet file.
  *
- * @param $columns
- *   An array, as set of column headers from a spreadsheet file.
+ * @param &$header
+ *   An array, a set of column headers from a spreadsheet file.
+ * @param &$project_name
+ *   A string value, the name of the project.
  *
  * @return
- *   An array, the same column headers in the parameter but with the
- *   specified column(s) removed.
+ *   An array, a new set of column headers with the specified header(s) omitted.
+ *   Array will be passed back to processing script ignoring data from indicated headers.
+ *
+ * @see
+ *   modules/rawpheno/include/rawpheno.upload.form.inc.
  */
-
-// When searching for new columns.
-// in rawpheno.upload.form.inc : rawpheno_upload_form_stage_review().
 function kp_nodes_rawpheno_ignorecols_newcolumn_alter(&$header, &$project_name) {
+  // Referenced parameters in functions: rawpheno_upload_form_stage_review() in @see.
+
   if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
     $index = kp_nodes_rawpheno_ignorecols_match($header);
 
@@ -592,10 +587,28 @@ function kp_nodes_rawpheno_ignorecols_newcolumn_alter(&$header, &$project_name) 
   }
 }
 
-// When saving and validating data.
-// in rawpheno.upload.form.inc : rawpheno_validate_excel_file().
-//                               rawpheno_load_spreadsheet().
+
+/**
+ * Implements hook_alter().
+ * Ignore columns in a spreadsheet file.
+ *
+ * @param &$skip
+ *   An array, a set of column headers from a spreadsheet file.
+ * @param &$project_name
+ *   A string value, the name of the project.
+ *
+ * @return
+ *   An array, containing the index numbers of headers in reference to the spreadsheet file.
+ *   Array will be passed back to processing script ignoring data from indicated headers.
+ *
+ * @see
+ *   modules/rawpheno/include/rawpheno.upload.excel.inc
+ *   kp_nodes_rawpheno_ignorecols().
+ */
 function kp_nodes_rawpheno_ignorecols_valsave_alter(&$skip, &$project_name) {
+  // Referenced parameters in functions: 
+  // rawpheno_validate_excel_file() and rawpheno_load_spreadsheet() in @see.
+  
   if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
     $t = kp_nodes_rawpheno_ignorecols();
     $index = array_map('rawpheno_function_delformat', $t);
@@ -606,7 +619,20 @@ function kp_nodes_rawpheno_ignorecols_valsave_alter(&$skip, &$project_name) {
   }
 }
 
-// Check existence of column(s) in columns array.
+
+/**
+ * Helper function: Search headers for omission from headers in the spreadsheet file.
+ *
+ * @param $header
+ *   An array, headers from spreadsheet file.
+ *
+ * @return
+ *   An array containing the index numbers of headers that matched header for omission.
+ *
+ * @see
+ *   kp_nodes_rawpheno_ignorecols_valsave_alter().
+ *   kp_nodes_rawpheno_ignorecols(). 
+ */
 function kp_nodes_rawpheno_ignorecols_match($header) {
   // Ignore columns: type in lowercase.
   $t = kp_nodes_rawpheno_ignorecols();
@@ -628,9 +654,14 @@ function kp_nodes_rawpheno_ignorecols_match($header) {
   return $cols_i;
 }
 
-// Define a set columns to ignore.
+
+/**
+ * Helper function: Define/list column header names for rawphenotypes module to ignore.
+ *
+ * @return
+ *   Array of column header names to be ignored.
+ */
 function kp_nodes_rawpheno_ignorecols() {
   // As it appears in the spreadsheet file.
   return array('Origin');
 }
-
