@@ -506,3 +506,167 @@ function kp_project_germplasm_list($project = null) {
     }
   }
 }
+
+/**
+ * Implements hook_alter().
+ * Match stock name to stock with AGL prefix in rawphenotypes module.
+ * Note: only when saving data in Stage 3.
+ *
+ * @param $data
+ *   An array containing the stock name and project name.
+ *
+ * @return
+ *   A string, stock name with AGL as required.
+ *
+ * NOTE: This applies to check stock names in stage 3: save spreadsheet.
+ */
+function kp_nodes_rawpheno_AGILE_stock_name_alter(&$stock_name, &$project_name) {
+  if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
+
+    $AGILE_stock_token = 'AGL';
+
+    // Only applies when project is AGILE.
+    if (strpos($stock_name, $AGILE_stock_token) === FALSE) {
+      // Stock name does not contain AGL.
+      // Alter stockname to contain AGL.
+
+      // Space required!
+      $stock_name .= ' AGL';
+    }
+  }
+}
+
+
+/**
+ * Implements hook_alter().
+ * Add support email to rawphenotypes block, upload page and other pages.
+ *
+ * @param $support_email
+ *   A string, referenced variable alterable by this hook.
+ *
+ * @see
+ *   modules/rawpheno/include/rawpheno.funciton.measurements.inc.
+ */
+function kp_nodes_rawpheno_support_email_alter(&$support_email) {
+  // Referenced parameters in function: rawpheno_function_get_support_email() in @see.
+
+  // Use $support_email = 'command#value' to provide support email.
+  // username, emailadd, useridno are the supported commands.
+  // Examples:
+
+  // $support_email = 'username#Drupal user name';
+  // $support_email = 'emailadd#your@emailaddress.com';
+  // $support_email = 'userdino#Integer, Id number';
+
+  $support_email = 'username#UofS Reynold Tan';
+}
+
+
+/**
+ * Implements hook_alter().
+ * Ignore columns in a spreadsheet file.
+ *
+ * @param &$header
+ *   An array, a set of column headers from a spreadsheet file.
+ * @param &$project_name
+ *   A string value, the name of the project.
+ *
+ * @return
+ *   An array, a new set of column headers with the specified header(s) omitted.
+ *   Array will be passed back to processing script ignoring data from indicated headers.
+ *
+ * @see
+ *   modules/rawpheno/include/rawpheno.upload.form.inc.
+ */
+function kp_nodes_rawpheno_ignorecols_newcolumn_alter(&$header, &$project_name) {
+  // Referenced parameters in functions: rawpheno_upload_form_stage_review() in @see.
+
+  if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
+    $index = kp_nodes_rawpheno_ignorecols_match($header);
+
+    if (count($index) > 0) {
+      foreach($index as $i) {
+        unset($header[$i]);
+      }
+    }
+  }
+}
+
+
+/**
+ * Implements hook_alter().
+ * Ignore columns in a spreadsheet file.
+ *
+ * @param &$skip
+ *   An array, a set of column headers from a spreadsheet file.
+ * @param &$project_name
+ *   A string value, the name of the project.
+ *
+ * @return
+ *   An array, containing the index numbers of headers in reference to the spreadsheet file.
+ *   Array will be passed back to processing script ignoring data from indicated headers.
+ *
+ * @see
+ *   modules/rawpheno/include/rawpheno.upload.excel.inc
+ *   kp_nodes_rawpheno_ignorecols().
+ */
+function kp_nodes_rawpheno_ignorecols_valsave_alter(&$skip, &$project_name) {
+  // Referenced parameters in functions:
+  // rawpheno_validate_excel_file() and rawpheno_load_spreadsheet() in @see.
+
+  if ($project_name == 'AGILE: Application of Genomic Innovation in the Lentil Economy') {
+    $t = kp_nodes_rawpheno_ignorecols();
+    $index = array_map('rawpheno_function_delformat', $t);
+
+    if (count($index) > 0) {
+      $skip = $index;
+    }
+  }
+}
+
+
+/**
+ * Helper function: Search headers for omission from headers in the spreadsheet file.
+ *
+ * @param $header
+ *   An array, headers from spreadsheet file.
+ *
+ * @return
+ *   An array containing the index numbers of headers that matched header for omission.
+ *
+ * @see
+ *   kp_nodes_rawpheno_ignorecols_valsave_alter().
+ *   kp_nodes_rawpheno_ignorecols().
+ */
+function kp_nodes_rawpheno_ignorecols_match($header) {
+  // Ignore columns: type in lowercase.
+  $t = kp_nodes_rawpheno_ignorecols();
+  $ignore_cols = array_map('rawpheno_function_delformat', $t);
+
+  // Index of match found.
+  $cols_i = array();
+
+  // Find columns.
+  foreach($header as $i => $col) {
+    $col = rawpheno_function_delformat($col);
+    $c = (is_array($col)) ? $col['no format'] : strtolower($col);
+
+    if (in_array($c, $ignore_cols)) {
+      $cols_i[] = $i;
+    }
+  }
+
+  return $cols_i;
+}
+
+
+/**
+ * Helper function: Define/list column header names for rawphenotypes module to ignore.
+ *
+ * @return
+ *   Array of column header names to be ignored.
+ */
+function kp_nodes_rawpheno_ignorecols() {
+  // As it appears in the spreadsheet file.
+  return array('Origin');
+}
