@@ -160,18 +160,18 @@ function kp_nodes_preprocess_tripal_project_base(&$variables) {
 
      // Table exists.
      $sql = sprintf("SELECT
-               t1.name, t1.uniquename,
-               INITCAP(genus) || ' ' || LOWER(species) AS species,
-               t2.name AS type,
+               s.name, s.uniquename,
+               INITCAP(o.genus) || ' ' || LOWER(o.species) AS species,
+               cvt.name AS type,
                'node/' || link.nid AS node_link
              FROM
-               {stock} AS t1
+               {stock} AS s
                LEFT JOIN chado_stock AS link USING(stock_id)
-               LEFT JOIN {project_stock} USING(stock_id)
-               LEFT JOIN {organism} USING(organism_id)
-               LEFT JOIN {cvterm} AS t2 ON cvterm_id = type_id
-             WHERE project_id = :project_id
-             ORDER BY t1.name %s", $sort);
+               LEFT JOIN {project_stock} AS projs USING(stock_id)
+               LEFT JOIN {organism} AS o USING(organism_id)
+               LEFT JOIN {cvterm} AS cvt ON cvt.cvterm_id = s.type_id
+             WHERE projs.project_id = :project_id
+             ORDER BY s.name %s", $sort);
 
      $args = array(':project_id' => $project_id);
      $g = chado_query($sql, $args);
@@ -253,22 +253,22 @@ function kp_nodes_preprocess_kp_nodes_project_stocks_AGILE(&$variables) {
 
      // Table exists.
      $sql = sprintf("SELECT
-               t1.name, t1.uniquename,
-               INITCAP(genus) || ' ' || LOWER(species) AS species,
-               t2.name AS type,
+               s.name, s.uniquename,
+               INITCAP(o.genus) || ' ' || LOWER(o.species) AS species,
+               cvt.name AS type,
                'node/' || link.nid AS node_link,
-               STRING_AGG(CASE WHEN t3.type_id = %d THEN t3.value END, '') AS origin
+               STRING_AGG(CASE WHEN sprop.type_id = %d THEN sprop.value END, '') AS origin
              FROM
-               {stock} AS t1
+               {stock} AS s
                LEFT JOIN chado_stock AS link USING(stock_id)
-               LEFT JOIN {project_stock} USING(stock_id)
-               LEFT JOIN {organism} USING(organism_id)
-               LEFT JOIN {cvterm} AS t2 ON t2.cvterm_id = t1.type_id
-               LEFT JOIN {stockprop} AS t3 USING(stock_id)
+               LEFT JOIN {project_stock} AS projs USING(stock_id)
+               LEFT JOIN {organism} AS o USING(organism_id)
+               LEFT JOIN {cvterm} AS cvt ON cvt.cvterm_id = s.type_id
+               LEFT JOIN {stockprop} AS sprop USING(stock_id)
              WHERE
-               project_id = :project_id
-             GROUP BY t1.name, t1.uniquename, genus, species, t2.name, link.nid
-             ORDER BY t1.name %s", $cvterm_id_origin->cvterm_id, $sort);
+               projs.project_id = :project_id
+             GROUP BY s.name, s.uniquename, o.genus, o.species, cvt.name, link.nid
+             ORDER BY s.name %s", $cvterm_id_origin->cvterm_id, $sort);
 
      $args = array(':project_id' => $project_id);
      $g = chado_query($sql, $args);
