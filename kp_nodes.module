@@ -451,21 +451,21 @@ function kp_project_germplasm_list($project = null) {
         $cvterm_id_origin = tripal_get_cvterm(array('name' => 'country_of_origin'));
 
         $sql = "SELECT
-          t1.name,
-          t1.uniquename,
-          INITCAP(genus) || ' ' || LOWER(species) AS species,
-          t2.name AS type,
-          STRING_AGG(CASE WHEN t3.type_id = :origin THEN t3.value END, '') AS origin
+          s.name,
+          s.uniquename,
+          INITCAP(o.genus) || ' ' || LOWER(o.species) AS species,
+          cvt.name AS type,
+          STRING_AGG(CASE WHEN sprop.type_id = :origin THEN sprop.value END, '') AS origin
         FROM
-          {stock} AS t1
-          LEFT JOIN {project_stock} USING(stock_id)
-          LEFT JOIN {organism} USING(organism_id)
-          LEFT JOIN {cvterm} AS t2 ON t2.cvterm_id = t1.type_id
-          LEFT JOIN {stockprop} AS t3 USING(stock_id)
+          {stock} AS s
+          LEFT JOIN {project_stock} AS projs USING(stock_id)
+          LEFT JOIN {organism} AS o USING(organism_id)
+          LEFT JOIN {cvterm} AS cvt ON cvt.cvterm_id = s.type_id
+          LEFT JOIN {stockprop} AS sprop USING(stock_id)
         WHERE
-          project_id = :project_id
-        GROUP BY t1.name, t1.uniquename, genus, species, t2.name
-        ORDER BY t1.name ASC";
+          projs.project_id = :project_id
+        GROUP BY s.name, s.uniquename, o.genus, o.species, cvt.name
+        ORDER BY s.name ASC";
 
         $args = array(
           ':origin' => $cvterm_id_origin->cvterm_id,
@@ -535,32 +535,6 @@ function kp_nodes_rawpheno_AGILE_stock_name_alter(&$stock_name, &$project_name) 
     }
   }
 }
-
-
-/**
- * Implements hook_alter().
- * Add support email to rawphenotypes block, upload page and other pages.
- *
- * @param $support_email
- *   A string, referenced variable alterable by this hook.
- *
- * @see
- *   modules/rawpheno/include/rawpheno.funciton.measurements.inc.
- */
-function kp_nodes_rawpheno_support_email_alter(&$support_email) {
-  // Referenced parameters in function: rawpheno_function_get_support_email() in @see.
-
-  // Use $support_email = 'command#value' to provide support email.
-  // username, emailadd, useridno are the supported commands.
-  // Examples:
-
-  // $support_email = 'username#Drupal user name';
-  // $support_email = 'emailadd#your@emailaddress.com';
-  // $support_email = 'userdino#Integer, Id number';
-
-  $support_email = 'username#UofS Reynold Tan';
-}
-
 
 /**
  * Implements hook_alter().
