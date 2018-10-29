@@ -42,8 +42,35 @@ function kp_nodes_menu() {
     'type' => MENU_CALLBACK,
   );
 
+
+  // Menu option knowpulse/AGILE
+
+  // This will set a shorter and easy to remember page alias of /project/AGILE:-Application ...
+  // experiment page address and redirect to project page when KnowPulse/AGILE is used.
+  $agile_redirect = array(
+    'title' => 'Loading AGILE experiment page...',
+    'page callback' => 'kp_page_redirect',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+   );
+
+  // Case-insensitive AGILE or agile - no problem.
+  $items['AGILE'] = $agile_redirect;
+  $items['agile'] = $agile_redirect;
+
+
   return $items;
 }
+
+
+/**
+ * FUNCTION CALLBACK: Redirect to AGILE Experiment page.
+ */
+function kp_page_redirect() {
+  print 'Redirecting...';
+  drupal_goto('project/AGILE:-Application-of-Genomic-Innovation-in-the-Lentil-Economy');
+}
+
 
 /**
  * Implements hook_theme().
